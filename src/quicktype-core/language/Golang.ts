@@ -19,7 +19,7 @@ import { anyTypeIssueAnnotation, nullTypeIssueAnnotation } from "../Annotation";
 import { TargetLanguage } from "../TargetLanguage";
 import { ConvenienceRenderer } from "../ConvenienceRenderer";
 import { RenderContext } from "../Renderer";
-
+import { StringTypeMapping, TransformedStringTypeKind, PrimitiveStringTypeKind } from "..";
 export const goOptions = {
     justTypes: new BooleanOption("just-types", "Plain types only", false),
     justTypesAndPackage: new BooleanOption("just-types-and-package", "Plain types with package only", false),
@@ -48,6 +48,12 @@ export class GoTargetLanguage extends TargetLanguage {
         return new GoRenderer(this, renderContext, getOptionValues(goOptions, untypedOptionValues));
     }
 
+    get stringTypeMapping(): StringTypeMapping {
+        const mapping: Map<TransformedStringTypeKind, PrimitiveStringTypeKind> = new Map();
+        mapping.set("date-time", "date-time");
+        mapping.set("uuid", "uuid");
+        return mapping;
+    }
     protected get defaultIndentation(): string {
         return "\t";
     }
@@ -71,7 +77,7 @@ function goNameStyle(original: string): string {
     );
 }
 
-const primitiveValueTypeKinds: TypeKind[] = ["integer", "double", "bool", "string"];
+const primitiveValueTypeKinds: TypeKind[] = ["integer", "double", "bool", "string", "date-time", "uuid"];
 const compoundTypeKinds: TypeKind[] = ["array", "class", "map", "enum"];
 
 function isValueType(t: Type): boolean {
@@ -214,6 +220,15 @@ export class GoRenderer extends ConvenienceRenderer {
                 const nullable = nullableFromUnion(unionType);
                 if (nullable !== null) return this.nullableGoType(nullable, withIssues);
                 return this.nameForNamedType(unionType);
+            },
+            (transformedStringType) => {
+                if (transformedStringType.kind === "date-time") {
+                    return "time.Time";
+                }
+                if (transformedStringType.kind === "uuid") {
+                    return "uuid.UUID";
+                }
+                return "String";
             }
         );
     }
@@ -393,6 +408,7 @@ export class GoRenderer extends ConvenienceRenderer {
     }
 
     private emitPackageDefinitons(includeJSONEncodingImport: boolean): void {
+        this.emitLineOnce("// This file was generated from JSON Schema using quicktype, do not modify it directly.");
         if (!this._options.justTypes || this._options.justTypesAndPackage) {
             this.ensureBlankLine();
             const packageDeclaration = "package " + this._options.packageName;
@@ -412,6 +428,8 @@ export class GoRenderer extends ConvenienceRenderer {
             }
             this.ensureBlankLine();
         }
+        this.emitLineOnce('import "time"');
+        this.emitLineOnce('import "github.com/google/uuid"');
     }
 
     private emitHelperFunctions(): void {
