@@ -36,6 +36,7 @@ import { anyTypeIssueAnnotation, nullTypeIssueAnnotation } from "../Annotation";
 import { defined } from "../support/Support";
 import { RenderContext } from "../Renderer";
 import { arrayIntercalate } from "collection-utils";
+import { lowerFirst } from "lodash";
 
 export const dartOptions = {
     justTypes: new BooleanOption("just-types", "Types only", false),
@@ -181,8 +182,8 @@ function dartNameStyle(startWithUpper: boolean, upperUnderscore: boolean, origin
     const firstWordStyle = upperUnderscore
         ? allUpperWordStyle
         : startWithUpper
-        ? firstUpperWordStyle
-        : allLowerWordStyle;
+            ? firstUpperWordStyle
+            : allLowerWordStyle;
     const restWordStyle = upperUnderscore ? allUpperWordStyle : firstUpperWordStyle;
     return combineWords(
         words,
@@ -323,10 +324,12 @@ export class DartRenderer extends ConvenienceRenderer {
             this.emitLine("import 'package:meta/meta.dart';");
         }
         this.emitLine("import 'dart:convert';");
+        this.emitLine("import 'interface.dart';");
     }
 
     protected emitDescriptionBlock(lines: Sourcelike[]): void {
-        this.emitCommentLines(lines, " * ", "/**", " */");
+        this.emitCommentLines(lines, "// ");
+        // this.emitCommentLines(lines, " * ", "/**", " */");
     }
 
     protected emitBlock(line: Sourcelike, f: () => void): void {
@@ -452,8 +455,20 @@ export class DartRenderer extends ConvenienceRenderer {
     }
 
     protected emitClassDefinition(c: ClassType, className: Name): void {
+
+        // not sure if this is true, but that's the best way I have found
+        var isTopLevel = c.getAncestorsNotInSet(new Set()).size == 0;
         this.emitDescription(this.descriptionForType(c));
-        this.emitBlock(["class ", className], () => {
+
+        var line = ["class ", className];
+        if (isTopLevel) {
+            line.push(" implements Model");
+        }
+
+        this.emitBlock(line, () => {
+            if (isTopLevel) {
+                this.emitLine("String uuid() => ", modifySource(lowerFirst, className), "Id;");
+            }
             if (c.getProperties().size === 0) {
                 this.emitLine(className, "();");
             } else {
@@ -551,7 +566,7 @@ export class DartRenderer extends ConvenienceRenderer {
                     );
                 });
             });
-            this.emitLine("};");
+            this.emitLine("}..removeWhere((k,v)=>v==null);");
         });
     }
 
@@ -597,6 +612,7 @@ export class DartRenderer extends ConvenienceRenderer {
 
         if (!this._options.justTypes && !this._options.codersInClass) {
             this.forEachTopLevel("leading-and-interposing", (t, name) => {
+
                 const { encoder, decoder } = defined(this._topLevelDependents.get(name));
 
                 this.emitLine(
