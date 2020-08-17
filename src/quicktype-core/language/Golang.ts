@@ -242,9 +242,7 @@ export class GoRenderer extends ConvenienceRenderer {
             this._options.justTypesAndPackage === false &&
             this.leadingComments === undefined
         ) {
-            this.emitLineOnce(
-                "// This file was generated from JSON Schema using quicktype, do not modify it directly."
-            );
+            this.emitLineOnce("// Code generated from from JSON Schema using quicktype. DO NOT EDIT.");
             this.emitLineOnce("// To parse and unparse this JSON data, add this code to your project and do:");
             this.emitLineOnce("//");
             const ref = modifySource(camelCase, name);
@@ -397,7 +395,7 @@ export class GoRenderer extends ConvenienceRenderer {
     }
 
     private emitSingleFileHeaderComments(): void {
-        this.emitLineOnce("// This file was generated from JSON Schema using quicktype, do not modify it directly.");
+        this.emitLineOnce("// Code generated from from JSON Schema using quicktype. DO NOT EDIT.");
         this.emitLineOnce("// To parse and unparse this JSON data, add this code to your project and do:");
         this.forEachTopLevel("none", (_: Type, name: Name) => {
             this.emitLine("//");
@@ -408,7 +406,7 @@ export class GoRenderer extends ConvenienceRenderer {
     }
 
     private emitPackageDefinitons(includeJSONEncodingImport: boolean): void {
-        this.emitLineOnce("// This file was generated from JSON Schema using quicktype, do not modify it directly.");
+        this.emitLineOnce("// Code generated from from JSON Schema using quicktype. DO NOT EDIT.");
         if (!this._options.justTypes || this._options.justTypesAndPackage) {
             this.ensureBlankLine();
             const packageDeclaration = "package " + this._options.packageName;

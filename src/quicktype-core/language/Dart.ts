@@ -312,6 +312,7 @@ export class DartRenderer extends ConvenienceRenderer {
 
         if (this._options.justTypes) return;
 
+        this.emitLine("// Code generated from from JSON Schema using quicktype. DO NOT EDIT.");
         this.emitLine("// To parse this JSON data, do");
         this.emitLine("//");
         this.forEachTopLevel("none", (_t, name) => {
