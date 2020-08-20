@@ -466,10 +466,8 @@ export class DartRenderer extends ConvenienceRenderer {
             line.push(" implements Model");
         }
 
+        var primaryId: Name;
         this.emitBlock(line, () => {
-            if (isTopLevel) {
-                this.emitLine("String uuid() => ", modifySource(lowerFirst, className), "Id;");
-            }
             if (c.getProperties().size === 0) {
                 this.emitLine(className, "();");
             } else {
@@ -482,7 +480,13 @@ export class DartRenderer extends ConvenienceRenderer {
                 this.emitLine("});");
                 this.ensureBlankLine();
 
-                this.forEachClassProperty(c, "none", (name, _, p) => {
+                this.forEachClassProperty(c, "none", (name, jsonName, p) => {
+                    var s = this.descriptionForClassProperty(c, jsonName);
+                    if (s != null && s.length > 0) {
+                        if (s[0] == "primary id") {
+                            primaryId = name;
+                        }
+                    }
                     this.emitLine(
                         this._options.finalProperties ? "final " : "",
                         this.dartType(p.type, true),
@@ -491,6 +495,14 @@ export class DartRenderer extends ConvenienceRenderer {
                         ";"
                     );
                 });
+            }
+
+            if (isTopLevel) {
+                if (primaryId != null) {
+                    this.emitLine("String uuid() => ", primaryId, ";");
+                } else {
+                    this.emitLine("String uuid() => \"\";")
+                }
             }
 
             if (this._options.generateCopyWith) {
