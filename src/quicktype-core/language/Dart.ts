@@ -600,7 +600,8 @@ export class DartRenderer extends ConvenienceRenderer {
         });
         this.emitLine("});");
 
-        this._needEnumValues = true;
+        // we do not need enum values, we have them in our code
+        // this._needEnumValues = true;
     }
 
     protected emitEnumValues(): void {
