@@ -386,16 +386,17 @@ export class DartRenderer extends ConvenienceRenderer {
             _nullType => dynamic, // FIXME: check null
             _boolType => dynamic,
             _integerType => dynamic,
-            _doubleType => [dynamic, ".toDouble()"],
+            _doubleType => [dynamic, "?.toDouble()"],
             _stringType => dynamic,
             arrayType =>
-                this.mapList(this.dartType(arrayType.items), dynamic, this.fromDynamicExpression(arrayType.items, "x")),
+                [dynamic, " == null ? null : ", this.mapList(this.dartType(arrayType.items), dynamic, this.fromDynamicExpression(arrayType.items, "x"))],
             classType => [this.nameForNamedType(classType), ".", this.fromJson, "(", dynamic, ")"],
             mapType =>
-                this.mapMap(this.dartType(mapType.values), dynamic, this.fromDynamicExpression(mapType.values, "v")),
-            enumType => [defined(this._enumValues.get(enumType)), ".map[", dynamic, "]"],
+                [dynamic, " == null ? null : ", this.mapMap(this.dartType(mapType.values), dynamic, this.fromDynamicExpression(mapType.values, "v"))],
+            enumType => [dynamic, " == null ? null : ", defined(this._enumValues.get(enumType)), ".map[", dynamic, "]"],
             unionType => {
                 const maybeNullable = nullableFromUnion(unionType);
+
                 if (maybeNullable === null) {
                     return dynamic;
                 }
@@ -405,7 +406,7 @@ export class DartRenderer extends ConvenienceRenderer {
                 switch (transformedStringType.kind) {
                     case "date-time":
                     case "date":
-                        return ["DateTime.parse(", dynamic, ")"];
+                        return [dynamic, " == null ? null : ", "DateTime.parse(", dynamic, ")"];
                     default:
                         return dynamic;
                 }
