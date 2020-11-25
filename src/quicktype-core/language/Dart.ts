@@ -36,7 +36,7 @@ import { anyTypeIssueAnnotation, nullTypeIssueAnnotation } from "../Annotation";
 import { defined } from "../support/Support";
 import { RenderContext } from "../Renderer";
 import { arrayIntercalate } from "collection-utils";
-import { lowerFirst } from "lodash";
+//import { lowerFirst } from "lodash";
 
 export const dartOptions = {
     justTypes: new BooleanOption("just-types", "Types only", false),
