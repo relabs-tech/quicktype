@@ -295,7 +295,11 @@ export class GoRenderer extends ConvenienceRenderer {
         this.emitLine("const (");
         this.indent(() =>
             this.forEachEnumCase(e, "none", (name, jsonName) => {
-                this.emitLine(name, " ", enumName, ' = "', stringEscape(jsonName), '"');
+                if (jsonName == "") {
+                    this.emitLine(this.sourcelikeToString(enumName), "Empty", " ", enumName, ' = "', stringEscape(jsonName), '"');
+                } else {
+                    this.emitLine(name, " ", enumName, ' = "', stringEscape(jsonName), '"');
+                }
             })
         );
         this.emitLine(")");
